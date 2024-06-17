@@ -1,5 +1,3 @@
-#Include "./FSR_Utils.ahk"
-
 class FSR_ScheduleQuery {
 	static flightInfoItems := [
 		"tripNum",

@@ -6,7 +6,7 @@ class FSR_Entry {
 			: A_Year
 		schdCiDate := Format("{1}{2}{3}", actualYear, StrSplit(inboundFlightLine["ibDate"], "/")[1], StrSplit(inboundFlightLine["ibDate"], "/")[2])
 		schdCoDate := Format("{1}{2}{3}", actualYear, StrSplit(inboundFlightLine["obDate"], "/")[1], StrSplit(inboundFlightLine["obDate"], "/")[2])
-		daysActual := getDaysActual(inboundFlightLine["stayHours"])
+		daysActual := this.getDaysActual(inboundFlightLine["stayHours"])
 
 		pmsCiDate := (StrSplit(inboundFlightLine["ETA"], ":")[1]) < bringForwardTime
 			? DateAdd(schdCiDate, -1, "days")
@@ -26,7 +26,7 @@ class FSR_Entry {
 		pmsCoDate := FormatTime(pmsCoDate, "MMddyyyy")
 		; }
 		this.openBooking()
-		
+
 		this.profileEntry(inboundFlightLine["inbound"], inboundFlightLine["tripNum"])
 
 		this.dateTimeEntry(pmsCiDate, pmsCoDate, inboundFlightLine["ETA"], inboundFlightLine["ETD"])
@@ -55,7 +55,7 @@ class FSR_Entry {
 		utils.waitLoading()
 		loop {
 			Sleep 250
-			if (PixelGetColor(610, 330) = "0x99B4D1") { 
+			if (PixelGetColor(610, 330) = "0x99B4D1") {
 				break
 			}
 			if (A_Index = 20) {
@@ -180,44 +180,44 @@ class FSR_Entry {
 	static moreFieldsEntry(sCheckin, sCheckout, ETA, ETD, flightIn, flightOut, initX := 236, initY := 333) {
 		MouseMove initX, initY ; 236, 333
 		utils.waitLoading()
-        Click
+		Click
 		utils.waitLoading()
-        MouseMove 680, 460
+		MouseMove 680, 460
 		utils.waitLoading()
-        Click 2
+		Click 2
 		utils.waitLoading()
-        Send Format("{Text}{1}", flightIn)
+		Send Format("{Text}{1}", flightIn)
 		utils.waitLoading()
-        loop 2 {
-            Send "{Tab}"
+		loop 2 {
+			Send "{Tab}"
 			utils.waitLoading()
-        }
-        Send Format("{Text}{1}", sCheckin)
-        Sleep 100
-        Send "{Tab}"
+		}
+		Send Format("{Text}{1}", sCheckin)
+		Sleep 100
+		Send "{Tab}"
 		utils.waitLoading()
-        Send Format("{Text}{1}", ETA)
+		Send Format("{Text}{1}", ETA)
 		utils.waitLoading()
-        MouseMove 917, 465
+		MouseMove 917, 465
 		utils.waitLoading()
-        Click 2
+		Click 2
 		utils.waitLoading()
-        Send Format("{Text}{1}", flightOut)
+		Send Format("{Text}{1}", flightOut)
 		utils.waitLoading()
-        loop 2 {
-            Send "{Tab}"
+		loop 2 {
+			Send "{Tab}"
 			utils.waitLoading()
-        }
+		}
 		utils.waitLoading()
-        Send Format("{Text}{1}", sCheckout)
+		Send Format("{Text}{1}", sCheckout)
 		utils.waitLoading()
-        Send "{Tab}"
+		Send "{Tab}"
 		utils.waitLoading()
-        Send Format("{Text}{1}", ETD)
+		Send Format("{Text}{1}", ETD)
 		utils.waitLoading()
-        MouseMove initX + 605, initY + 347 ; 841, 680
+		MouseMove initX + 605, initY + 347 ; 841, 680
 		utils.waitLoading()
-        Click
+		Click
 		utils.waitLoading()
 	}
 
@@ -236,7 +236,7 @@ class FSR_Entry {
 		utils.waitLoading()
 		loop 4 {
 			Send "{Tab}"
-			utils.waitLoading()		
+			utils.waitLoading()
 		}
 		Send "{Text}NRR"
 		utils.waitLoading()
@@ -253,5 +253,17 @@ class FSR_Entry {
 			utils.waitLoading()
 		}
 		utils.waitLoading()
+	}
+
+	static getDaysActual(hoursAtHotel) {
+		h := StrSplit(hoursAtHotel, ":")[1]
+		m := StrSplit(hoursAtHotel, ":")[2]
+		if (h < 24) {
+			return 1
+		} else if (Mod(h, 24) = 0 && m = 0) {
+			return Integer(h / 24)
+		} else if (h >= 24 || m != 0) {
+			return Integer(h / 24 + 1)
+		}
 	}
 }

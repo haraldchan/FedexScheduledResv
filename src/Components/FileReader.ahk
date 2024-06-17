@@ -38,6 +38,6 @@ FileReader(App, path) {
            .OnEvent("Click", (*) => handleFileSelect()),
 
         App.AddButton("h25 w110 x+10", "打开文件")
-           .OnEvent("Click", (*) => Run(App.getCtrlByName("schdPath").Value))
+           .OnEvent("Click", (*) => Run(xlsPath.value))
     )
 }

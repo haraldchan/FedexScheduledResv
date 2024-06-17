@@ -4,10 +4,6 @@ DaySchedule(App, flights, selectDate, bringForwardTime) {
         App.getCtrlByName("checkAllBtn").value := new
     )
 
-    setTitleBold(){
-        App.getCtrlByName("title").SetFont("Bold")
-    }
-
     columnDetails := {
         keys: [
             "tripNum",
@@ -79,11 +75,10 @@ DaySchedule(App, flights, selectDate, bringForwardTime) {
 
     return (
         App.AddGroupBox("x270 yp-265 h450 w650"),
-        App.AddReactiveText("vtitle xp+10 yp-1 h25 w200", "  Scheduled Flights on {1} ", selectDate),
+        App.AddReactiveText("xp+10 yp-1 h25 w200", "  Scheduled Flights on {1} ", selectDate).setFont("Bold"),
         App.AddReactiveListView(options, columnDetails, flights,,["ItemCheck", handleItemCheck]),
         App.AddCheckbox("vcheckAllBtn Checked h25 y+10", "全选")
            .OnEvent("Click", handleCheckAll),
         App.AddButton("x+10 Default", "开始录入").OnEvent("Click", (*) => handleEntry()),
-        setTitleBold()
     )
 }

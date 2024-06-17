@@ -355,6 +355,10 @@ class AddReactive {
         this.ctrl.OnEvent(event, callback)
     }
 
+    setFont(options := "", fontName := "Verdana") {
+        this.ctrl.setFont(options, fontName)
+    }
+
     disable(state) {
         this.ctrl.Enabled := state
     }

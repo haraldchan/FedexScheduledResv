@@ -5,6 +5,8 @@
 #Include "./Components/DateCal.ahk"
 
 App(App) {
+    jsonFile := "./Data/snapshot.json"
+
     ; /** value @type {array} */
     flights := signal([loadingPlaceholder])
 
@@ -22,24 +24,24 @@ App(App) {
 
     ; /** value @type {number} */
     bringForwardTime := signal(config.read("bringForwardTime"))
-    effect(bringForwardTime, new =>
-        config.write("bringForwardTime", new))
+    effect(bringForwardTime, new => config.write("bringForwardTime", new))
+
     ; /** value @type {Date} */
     selectedDate := signal(config.read("lastSelectDate"))
     effect(selectedDate, new =>
         config.write("lastSelectDate", new)
         flights.set([loadingPlaceholder])
         flights.set(
-            FSR_ScheduleQuery.getQueryDateFlights(config.read("schdPath"), new)
+            FSR_ScheduleQuery.loadSnapshotJson(new)
         ))
 
     onLoad() {
-        flights.set(
-            FSR_ScheduleQuery.getQueryDateFlights(
-                config.read("schdPath"),
-                selectedDate.value
-            )
-        )
+        ; Sleep 100
+        flights.set(FSR_ScheduleQuery.loadSchedule(
+            selectedDate.value,
+            jsonFile,
+            config.read("schdPath")
+        ))
     }
 
     return (
@@ -51,7 +53,7 @@ App(App) {
                 F12:       强制停止脚本
             )"
         ),
-        FileReader(App, config.read("schdPath")),
+        FileReader(App, config.read("schdPath"), jsonFile),
         DateCal(App, selectedDate, bringForwardTime),
         DaySchedule(App, flights, selectedDate, bringForwardTime),
         onLoad()

@@ -1,11 +1,11 @@
-FileReader(App, path) {
-    xlsPath := signal(path)
+FileReader(App, xlFile, jsonFile) {
+    xlsPath := signal(xlFile)
 
     handleFileSelect() {
         App.Opt("+OwnDialogs")
         selectFile := FileSelect(3, , "请选择 Schedule 文件")
         
-        isXls(selectFile)
+        setPath(selectFile)
     }
 
     handleFileDrop(GuiObj, GuiCtrlObj, FileArray, X, Y, *) {
@@ -13,17 +13,19 @@ FileReader(App, path) {
             FileArray.RemoveAt[1]
         }
 
-        isXls(FileArray[1])
+        setPath(FileArray[1])
     }
 
-    isXls(file) {
-        if (!InStr(file, ".xls")) {
+    setPath(file) {
+        SplitPath file,,, &ext
+        if (ext != "xls") {
             MsgBox("请选择Excel文件")
             return 
         }
             
         xlsPath.set(file)
         config.write("schdPath", xlsPath.value)
+        FSR_ScheduleQuery.createSnapshotJson(file, jsonFile)
     }
 
     return (

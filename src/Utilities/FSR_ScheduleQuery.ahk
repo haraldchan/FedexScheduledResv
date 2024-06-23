@@ -1,4 +1,6 @@
 class FSR_ScheduleQuery {
+	static isSaving := false
+
 	static flightInfoItems := [
 		"tripNum",
 		"roomQty",
@@ -17,7 +19,7 @@ class FSR_ScheduleQuery {
 		if (FileExist(jsonFile)) {
 			return this.loadSnapshotJson(jsonFile, date)
 		} else {
-			SetTimer(() => this.createSnapshotJson(xlFile, jsonFile), -100)
+			SetTimer(() => this.createSnapshotJson(xlFile, jsonFile), -1000)
 			return this.loadXlFile(xlFile, date)
 		}
 	}
@@ -63,6 +65,12 @@ class FSR_ScheduleQuery {
 	}
 
 	static createSnapshotJson(xlFile, jsonFile) {
+		if (this.isSaving = true) {
+			return
+		} else {
+			this.isSaving := true
+		}
+
 		Xl := ComObject("Excel.Application")
 
 		try {
@@ -83,7 +91,6 @@ class FSR_ScheduleQuery {
 			schdData.Worksheets(sheetIndex).Activate
 			ciDate := schdData.ActiveSheet.Cells(3, 1).Text
 			lastRow := schdData.ActiveSheet.Cells(schdData.ActiveSheet.Rows.Count, "A").End(-4162).Row
-			scheduledDaily := []
 
 			if (ciDate = "") {
 				schdData.Close()
@@ -95,33 +102,47 @@ class FSR_ScheduleQuery {
 				? Format("{1}{2}", A_Year + 1, StrReplace(ciDate, "/", ""))
 				: Format("{1}{2}", A_Year, StrReplace(ciDate, "/", ""))
 
+			scheduledDaily := []
 			loop (lastRow - 3) {
-				flight := Map()
+				
+				
+				; read line
+				flight := Map() 
 				loop 11 {
 					for item in this.flightInfoItems {
 						flight[item] := schdData.Worksheets(sheetIndex).Cells(schdRow, A_Index).Text
 					}
-					scheduledDaily.Push(flight)
-					schdRow++
+					flight["inbound"] := flight["flightIn1"] . flight["flightIn2"]
+					flight["outbound"] := flight["flightOut1"] . flight["flightOut2"]
 				}
 
-				scheduleMonthly.Push(Map(fullDate, scheduledDaily))
-
-				sheet++
-				schdRow := 4
+				scheduledDaily.Push(flight)
+				schdRow++
 			}
+
+			; push daily to monthly
+			scheduleMonthly.Push(Map(fullDate, scheduledDaily))	
+			; reset schdRow, to next sheet
+			schdRow := 4
+			sheet++
+
+			TrayTip(Format("缓存中 {1}%", Integer(sheet / schdSheetAmount * 100)))
 		}
+		TrayTip("缓存中 100%")
 		
-		if (FileExist(jsonFile)) {
-			FileDelete(jsonFile)
-		}
 		FileAppend(JSON.stringify(scheduleMonthly), jsonFile, "UTF-8")
 		Xl.Quit()
+
+		this.isSaving := false
 	}
 
 	static loadSnapshotJson(jsonFile, date) {
 		snapshot := JSON.parse(FileRead(jsonFile))
-		return snapshot[date]
+		for day in snapshot {
+			if (day.has(date)) {
+				return day[date]
+			}
+		}
+		return []
 	}
-
 }

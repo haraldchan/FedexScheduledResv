@@ -5,10 +5,7 @@
 #Include "./Components/DateCal.ahk"
 
 App(App) {
-    jsonFile := "./Data/snapshot.json"
-
-    ; /** value @type {array} */
-    flights := signal([loadingPlaceholder])
+    jsonFile := A_ScriptDir . "\src\Data\snapshot.json"
 
     loadingPlaceholder := Map(
         "tripNum", "Loading...",
@@ -22,6 +19,9 @@ App(App) {
         "outbound", "Loading...",
     )
 
+    ; /** value @type {array} */
+    flights := signal([loadingPlaceholder])
+
     ; /** value @type {number} */
     bringForwardTime := signal(config.read("bringForwardTime"))
     effect(bringForwardTime, new => config.write("bringForwardTime", new))
@@ -32,16 +32,22 @@ App(App) {
         config.write("lastSelectDate", new)
         flights.set([loadingPlaceholder])
         flights.set(
-            FSR_ScheduleQuery.loadSnapshotJson(new)
-        ))
+            FSR_ScheduleQuery.loadSchedule(
+                selectedDate.value,
+                jsonFile,
+                config.read("schdPath")
+            )
+        )
+    )
 
     onLoad() {
-        ; Sleep 100
-        flights.set(FSR_ScheduleQuery.loadSchedule(
-            selectedDate.value,
-            jsonFile,
-            config.read("schdPath")
-        ))
+        flights.set(
+            FSR_ScheduleQuery.loadXlFile(
+                config.read("schdPath"),
+                selectedDate.value
+            )
+        )
+        App.getCtrlByType("ListView").ModifyCol(2, 40)
     }
 
     return (

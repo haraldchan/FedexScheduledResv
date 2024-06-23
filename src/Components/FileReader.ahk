@@ -22,9 +22,10 @@ FileReader(App, xlFile, jsonFile) {
             MsgBox("请选择Excel文件")
             return 
         }
-            
+        
         xlsPath.set(file)
         config.write("schdPath", xlsPath.value)
+        FileDelete(jsonFile)
         FSR_ScheduleQuery.createSnapshotJson(file, jsonFile)
     }
 

@@ -143,6 +143,7 @@ class FSR_ScheduleQuery {
 				return day[date]
 			}
 		}
+		SetTimer(() => Msgbox("超出 Schedule 文件日期范围，选中日期无数据。", popupTitle, "4096 T3"), -100)
 		return []
 	}
 }

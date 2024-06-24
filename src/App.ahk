@@ -5,7 +5,7 @@
 #Include "./Components/DateCal.ahk"
 
 App(App) {
-    jsonFile := A_ScriptDir . "\src\Data\snapshot.json"
+    jsonFile := A_MyDocuments . "\fsr-schedule.json"
 
     loadingPlaceholder := Map(
         "tripNum", "Loading...",

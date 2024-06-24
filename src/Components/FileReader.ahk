@@ -25,7 +25,9 @@ FileReader(App, xlFile, jsonFile) {
         
         xlsPath.set(file)
         config.write("schdPath", xlsPath.value)
-        FileDelete(jsonFile)
+        if (FileExist(jsonFile)) {
+            FileDelete(jsonFile)            
+        }
         FSR_ScheduleQuery.createSnapshotJson(file, jsonFile)
     }
 

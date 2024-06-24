@@ -25,6 +25,10 @@ class FSR_ScheduleQuery {
 	}
 
 	static loadXlFile(xlFile, date) {
+		if (xlFile = "") {
+			return []
+		}
+
 		Xl := ComObject("Excel.Application")
 		try {
 			schdBook := Xl.Workbooks.Open(xlFile)

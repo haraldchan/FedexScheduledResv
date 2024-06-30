@@ -2,7 +2,6 @@ defineArrayMethods(arr) {
     arr.Prototype.some := some
     arr.Prototype.every := every
     arr.Prototype.filter := filter
-    arr.Prototype.filter := find
     arr.Prototype.map := map
     arr.Prototype.reduce := reduce
     arr.Prototype.with := with

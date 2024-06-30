@@ -31,6 +31,15 @@ FileReader(App, xlFile, jsonFile) {
         FSR_ScheduleQuery.createSnapshotJson(file, jsonFile)
     }
 
+    openXlFile() {
+        if (FSR_ScheduleQuery.isSaving = true) {
+            MsgBox("缓存生成中，请稍后再试。", popupTitle, "T2")
+            return
+        }
+
+        Run(xlsPath.value)
+    }
+
     return (
         ; add filedrop event
         App.OnEvent("DropFiles", handleFileDrop),
@@ -43,6 +52,6 @@ FileReader(App, xlFile, jsonFile) {
            .OnEvent("Click", (*) => handleFileSelect()),
 
         App.AddButton("h25 w110 x+10", "打开文件")
-           .OnEvent("Click", (*) => Run(xlsPath.value))
+           .OnEvent("Click", (*) => openXlFile())
     )
 }

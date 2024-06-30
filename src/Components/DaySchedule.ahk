@@ -4,6 +4,21 @@ DaySchedule(App, flights, selectDate, bringForwardTime) {
         App.getCtrlByName("checkAllBtn").value := new
     )
 
+    flightCount := computed(flights, new => getFlightCount(new))
+    getFlightCount(flights){
+        if (flights.Length = 0 || flights[1].values().every(val => val = "Loading...")) {
+            return
+        }
+
+        flightCount := 0
+
+        for flight in flights {
+            flightCount += flight["roomQty"]
+        }
+
+        return flightCount
+    }
+
     columnDetails := {
         keys: [
             "tripNum",
@@ -75,7 +90,7 @@ DaySchedule(App, flights, selectDate, bringForwardTime) {
 
     return (
         App.AddGroupBox("x270 yp-265 h450 w670"),
-        App.AddReactiveText("xp+10 yp-1 h25 w250", "  Scheduled Flights on {1} ", selectDate).setFont("Bold"),
+        App.AddReactiveText("xp+10 yp-1 h25 w350", "  Scheduled Flights on {1},  Total Resv: {2}", [selectDate, flightCount]).setFont("Bold"),
         App.AddReactiveListView(options, columnDetails, flights,,["ItemCheck", handleItemCheck]),
         App.AddCheckbox("vcheckAllBtn Checked h25 y+10", "全选")
            .OnEvent("Click", handleCheckAll),

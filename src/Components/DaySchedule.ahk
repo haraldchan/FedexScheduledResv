@@ -1,5 +1,8 @@
 DaySchedule(App, flights, selectDate, bringForwardTime) {
     isCheckedAll := signal(true)
+
+    effect(flights, () => isCheckedAll.set(true))
+
     effect(isCheckedAll, new => 
         App.getCtrlByName("checkAllBtn").value := new
     )

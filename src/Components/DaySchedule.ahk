@@ -1,11 +1,4 @@
 DaySchedule(App, flights, selectDate, bringForwardTime) {
-    isCheckedAll := signal(true)
-
-    effect(flights, () => isCheckedAll.set(true))
-
-    effect(isCheckedAll, new => 
-        App.getCtrlByName("checkAllBtn").value := new
-    )
 
     flightCount := computed(flights, new => getFlightCount(new))
     getFlightCount(flights){
@@ -52,17 +45,6 @@ DaySchedule(App, flights, selectDate, bringForwardTime) {
         itemOptions: "Check"
     }
 
-    handleCheckAll(ctrl, _) {
-        isCheckedAll.set(ctrl.value)
-        LV := App.getCtrlByType("ListView")
-
-        LV.Modify(0, isCheckedAll.value = true ? "Check" : "-Check")
-    }
-
-    handleItemCheck(LV, item, isChecked) {
-        isCheckedAll.set(LV.getCheckedRowNumbers().Length = LV.GetCount())
-    }
-
     handleEntry() {
         selectedFlights := []
         checkedRows := App.getCtrlByType("ListView").getCheckedRowNumbers()
@@ -94,9 +76,12 @@ DaySchedule(App, flights, selectDate, bringForwardTime) {
     return (
         App.AddGroupBox("x270 yp-265 h450 w670"),
         App.AddReactiveText("xp+10 yp-1 h25 w350", "  Scheduled Flights on {1},  Total Resv: {2}", [selectDate, flightCount]).setFont("Bold"),
-        App.AddReactiveListView(options, columnDetails, flights,,["ItemCheck", handleItemCheck]),
-        App.AddCheckbox("vcheckAllBtn Checked h25 y+10", "全选")
-           .OnEvent("Click", handleCheckAll),
-        App.AddButton("x+10 Default", "开始录入").OnEvent("Click", (*) => handleEntry())
+        App.AddReactiveListView(options, columnDetails, flights),
+        App.AddCheckbox("vcheckAllBtn Checked h25 y+10", "全选"),
+        App.AddButton("x+10 Default", "开始录入").OnEvent("Click", (*) => handleEntry()),
+        shareCheckStatus(
+            App.getCtrlByName("checkAllBtn"),
+            App.getCtrlByType("ListView")
+        )
     )
 }

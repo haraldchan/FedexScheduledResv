@@ -44,7 +44,7 @@ class FSR_ScheduleQuery {
 
 		; find query sheet
 		loop sheetCount {
-			curSheet := schdBook.Worksheets(Format("Sheet{1}", A_Index))
+			curSheet := schdBook.Worksheets(A_Index)
 			if (curSheet.Cells(3, 1).Text = dateQuery) {
 
 				; push each inbound as a Map to inboundFlights(array)
@@ -91,7 +91,7 @@ class FSR_ScheduleQuery {
 		scheduleMonthly := []
 
 		loop schdSheetAmount {
-			sheetIndex := Format("Sheet{1}", sheet)
+			sheetIndex := sheet
 			schdData.Worksheets(sheetIndex).Activate
 			ciDate := schdData.ActiveSheet.Cells(3, 1).Text
 			lastRow := schdData.ActiveSheet.Cells(schdData.ActiveSheet.Rows.Count, "A").End(-4162).Row

@@ -14,6 +14,8 @@ DateCal(App, selectDate, bringForwardTime) {
                 return A_Index
             }
         }
+
+        return 2
     }
 
     return (

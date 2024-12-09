@@ -29,6 +29,7 @@ App(App) {
     ; /** value @type {Date} */
     selectedDate := signal(config.read("lastSelectDate"))
     effect(selectedDate, new =>
+        App.getCtrlByType("CheckBox").Value := true
         config.write("lastSelectDate", new)
         flights.set([loadingPlaceholder])
         flights.set(

@@ -1,14 +1,14 @@
 class FSR_Entry {
 	static USE(inboundFlightLine, bringForwardTime) {
-		; { date reformatting
-		actualYear := (StrSplit(inboundFlightLine["ibDate"], "/")[1] < A_MM)
-			? A_Year + 1
-			: A_Year
-		schdCiDate := Format("{1}{2}{3}", actualYear, StrSplit(inboundFlightLine["ibDate"], "/")[1], StrSplit(inboundFlightLine["ibDate"], "/")[2])
-		schdCoDate := Format("{1}{2}{3}", actualYear, StrSplit(inboundFlightLine["obDate"], "/")[1], StrSplit(inboundFlightLine["obDate"], "/")[2])
+		;  date reformatting
+		schdCiYear := StrSplit(inboundFlightLine["ibDate"], "/")[1] < A_MM ? A_Year + 1 : A_Year
+		schdCoYear := StrSplit(inboundFlightLine["obDate"], "/")[1] < A_MM ? A_Year + 1 : A_Year
+
+		schdCiDate := Format("{1}{2}{3}", schdCiYear, StrSplit(inboundFlightLine["ibDate"], "/")[1], StrSplit(inboundFlightLine["ibDate"], "/")[2])
+		schdCoDate := Format("{1}{2}{3}", schdCoYear, StrSplit(inboundFlightLine["obDate"], "/")[1], StrSplit(inboundFlightLine["obDate"], "/")[2])
 		daysActual := this.getDaysActual(inboundFlightLine["stayHours"])
 
-		pmsCiDate := (StrSplit(inboundFlightLine["ETA"], ":")[1]) < bringForwardTime
+		pmsCiDate := StrSplit(inboundFlightLine["ETA"], ":")[1] < bringForwardTime
 			? DateAdd(schdCiDate, -1, "days")
 			: schdCiDate
 		pmsCoDate := schdCoDate
@@ -24,7 +24,8 @@ class FSR_Entry {
 		schdCoDate := FormatTime(schdCoDate, "MMddyyyy")
 		pmsCiDate := FormatTime(pmsCiDate, "MMddyyyy")
 		pmsCoDate := FormatTime(pmsCoDate, "MMddyyyy")
-		; }
+
+		; entry flow
 		this.openBooking()
 
 		this.profileEntry(inboundFlightLine["inbound"], inboundFlightLine["tripNum"])

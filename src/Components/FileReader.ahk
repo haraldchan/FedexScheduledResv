@@ -18,7 +18,7 @@ FileReader(App, xlFile, jsonFile) {
 
     setPath(file) {
         SplitPath file,,, &ext
-        if (ext != "xls") {
+        if (ext != "xls" || ext != "xlsx") {
             MsgBox("请选择Excel文件")
             return 
         }

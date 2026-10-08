@@ -1,5 +1,36 @@
 class FSR_Entry {
-	static USE(inboundFlightLine, bringForwardTime) {
+	static start() {
+		if (!WinExist("ahk_class SunAwtFrame")) {
+			Msgbox("Opera 未启动...", POPUP_TITLE, "T5")
+			return false
+		}
+		WinSetAlwaysOnTop(true, "ahk_class SunAwtFrame")
+		WinMaximize("ahk_class SunAwtFrame")
+		WinActivate("ahk_class SunAwtFrame")
+		BlockInput(true)
+	}
+
+	static end() {
+		WinSetAlwaysOnTop(false, "ahk_class SunAwtFrame")
+		BlockInput(false)
+	}
+
+	static USE(selectedFlights, bringForwardTime) {
+		isStarted := this.start()
+		if (!isStarted) {
+			return
+		}
+
+		for (line in selectedFlights) {
+			loop line["roomQty"] {
+				this.enterLine(line, bringForwardTime)
+			}
+		}
+		
+		this.end()
+	}
+
+	static enterLine(inboundFlightLine, bringForwardTime) {
 		;  date reformatting
 		schdCiYear := StrSplit(inboundFlightLine["ibDate"], "/")[1] < A_MM ? A_Year + 1 : A_Year
 		schdCoYear := StrSplit(inboundFlightLine["obDate"], "/")[1] < A_MM ? A_Year + 1 : A_Year

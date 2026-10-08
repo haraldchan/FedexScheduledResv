@@ -1,153 +1,92 @@
 class FSR_ScheduleQuery {
-	static isSaving := false
+	static createFmtSchdJSON(schdPDF) {
+		pdfToText := A_ScriptDir "\vendor\pdftotext.exe"
+		tempOutput := A_Temp "\schd_output.txt"
 
-	static flightInfoItems := [
-		"tripNum",
-		"roomQty",
-		"flightIn1",
-		"flightIn2",
-		"ibDate",
-		"ETA",
-		"stayHours",
-		"obDate",
-		"ETD",
-		"flightOut1",
-		"flightOut2"
-	]
+		RunWait('"' pdfToText '" -raw "' schdPDF '" "' tempOutput '"', , "Hide")
 
-	static loadSchedule(date, jsonFile, xlFile) {
-		if (FileExist(jsonFile)) {
-			return this.loadSnapshotJson(jsonFile, date)
-		} else {
-			SetTimer(() => this.createSnapshotJson(xlFile, jsonFile), -1000)
-			return this.loadXlFile(xlFile, date)
-		}
-	}
+		schdTxt := FileRead(tempOutput, "utf-8")
+		FileDelete(tempOutput)
 
-	static loadXlFile(xlFile, date) {
-		if (xlFile = "") {
-			return []
+		if (!schdTxt.includes("FEDERAL EXPRESS PILOT HOUSING SCHEDULE")) {
+			return false
 		}
 
-		Xl := ComObject("Excel.Application")
-		try {
-			schdBook := Xl.Workbooks.Open(xlFile)
-		} catch Error as err {
-			msgbox(err.Message)
-			return []
-		}
+		regex := "^\d+/\d+.*\d+/\d+$"
 
-		row := 4
-		dateQuery := (FormatTime(date, "MM/dd"))
-		sheetCount := schdBook.Worksheets.Count
-		inboundFlights := []
-
-		; find query sheet
-		loop sheetCount {
-			curSheet := schdBook.Worksheets(A_Index)
-			if (curSheet.Cells(3, 1).Text = dateQuery) {
-
-				; push each inbound as a Map to inboundFlights(array)
-				lastRow := curSheet.Cells(curSheet.Rows.Count, "A").End(-4162).Row
-				loop (lastRow - 3) {
-					flightInfoMap := Map()
-					for item in this.flightInfoItems {
-						flightInfoMap[item] := curSheet.Cells(row, A_Index).Text
-					}
-					flightInfoMap["inbound"] := flightInfoMap["flightIn1"] . flightInfoMap["flightIn2"]
-					flightInfoMap["outbound"] := flightInfoMap["flightOut1"] . flightInfoMap["flightOut2"]
-
-					inboundFlights.Push(flightInfoMap)
-					row++
-				}
+		res := ""
+		loop parse schdTxt, "`n" {
+			if (RegExMatch(A_LoopField, regex)) {
+				res .= A_LoopField "`n"
 			}
 		}
+		res := RTrim(res, "`n")
 
-		Xl.Quit()
+		rawSchd := res.split("`n")
+		schd := []
+		daySchd := Map()
+		curDate := ""
+		for (line in rawSchd) {
+			splittedLine := line.split(" ")
 
-		return inboundFlights
-	}
-
-	static createSnapshotJson(xlFile, jsonFile) {
-		if (this.isSaving = true) {
-			return
-		} else {
-			this.isSaving := true
-		}
-
-		Xl := ComObject("Excel.Application")
-
-		try {
-			schdData := Xl.Workbooks.Open(xlFile)
-		} catch Error as err {
-			msgbox(err.Message)
-			return []
-		}
-
-		schdSheetAmount := schdData.Sheets.Count
-		sheet := 1
-		schdRow := 4
-
-		scheduleMonthly := []
-
-		loop schdSheetAmount {
-			sheetIndex := sheet
-			schdData.Worksheets(sheetIndex).Activate
-			ciDate := schdData.ActiveSheet.Cells(3, 1).Text
-			lastRow := schdData.ActiveSheet.Cells(schdData.ActiveSheet.Rows.Count, "A").End(-4162).Row
-
-			if (ciDate = "") {
-				schdData.Close()
-				break
-			}
-
-			; fullDate => yyyyMMdd
-			fullDate := StrSplit(ciDate, "/")[1] < A_MM
-				? Format("{1}{2}", A_Year + 1, StrReplace(ciDate, "/", ""))
-				: Format("{1}{2}", A_Year, StrReplace(ciDate, "/", ""))
-
-			scheduledDaily := []
-			loop (lastRow - 3) {
-				
-				
-				; read line
-				flight := Map() 
-				loop 11 {
-					for item in this.flightInfoItems {
-						flight[item] := schdData.Worksheets(sheetIndex).Cells(schdRow, A_Index).Text
-					}
-					flight["inbound"] := flight["flightIn1"] . flight["flightIn2"]
-					flight["outbound"] := flight["flightOut1"] . flight["flightOut2"]
+			if (splittedLine.Length == 14) {
+				if (daySchd.Capacity > 0) {
+					schd.Push(daySchd)
 				}
 
-				scheduledDaily.Push(flight)
-				schdRow++
+				ciDate := splittedLine[2]
+				fullDate := StrSplit(ciDate, "/")[1] < A_MM
+					? Format("{1}{2}", A_Year + 1, StrReplace(ciDate, "/", ""))
+					: Format("{1}{2}", A_Year, StrReplace(ciDate, "/", ""))
+
+				curDate := fullDate
+				daySchd := Map(curDate, [])
+				splittedLine.RemoveAt(2, 2)
 			}
 
-			; push daily to monthly
-			scheduleMonthly.Push(Map(fullDate, scheduledDaily))	
-			; reset schdRow, to next sheet
-			schdRow := 4
-			sheet++
+			flightInfo := Map(
+				"tripNum", splittedLine[1],
+				"roomQty", splittedLine[2],
+				"inbound", splittedLine[4] . splittedLine[5],
+				"ibDate", FormatTime(curDate, "MM/dd"),
+				"ETA", splittedLine[6],
+				"stayHours", splittedLine[7],
+				"obDate", splittedLine[12],
+				"ETD", splittedLine[8],
+				"outbound", splittedLine[9] . splittedLine[10]
+			)
 
-			TrayTip(Format("缓存中 {1}%", Integer(sheet / schdSheetAmount * 100)))
+			daySchd[curDate].Push(flightInfo)
 		}
-		TrayTip("缓存中 100%")
+
+		schd.Push(daySchd)
+
+		if (FileExist(APP_DATA_DIR "\fmt-schd.json")) {
+			FileDelete(APP_DATA_DIR "\fmt-schd.json")
+		}
+		FileAppend(JSON.stringify(schd), APP_DATA_DIR "\fmt-schd.json", "utf-8")
+
+		MsgBox("Schedule 已读取", POPUP_TITLE, "4096 T1 iconi")
 		
-		FileAppend(JSON.stringify(scheduleMonthly), jsonFile, "UTF-8")
-		Xl.Quit()
-
-		this.isSaving := false
+		return true
 	}
 
-	static loadSnapshotJson(jsonFile, date) {
-		snapshot := JSON.parse(FileRead(jsonFile))
-		for day in snapshot {
+	static loadSchdJSON(date) {
+		date := FormatTime(date, "yyyyMMdd")
+
+		if (!FileExist(APP_DATA_DIR "\fmt-schd.json")) {
+			MsgBox("Schedule 未找到，请先读入", POPUP_TITLE, "4096 T2 icon!")
+			return []
+		}
+
+		schd := JSON.parse(FileRead(APP_DATA_DIR "\fmt-schd.json"))
+		for (day in schd) {
 			if (day.has(date)) {
 				return day[date]
 			}
 		}
-		SetTimer(() => Msgbox("超出 Schedule 文件日期范围，选中日期无数据。", popupTitle, "4096 T3"), -100)
+
+		Msgbox("超出 Schedule 文件日期范围，选中日期无数据。", POPUP_TITLE, "4096 T3 icon!")
 		return []
 	}
 }

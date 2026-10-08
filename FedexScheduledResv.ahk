@@ -1,28 +1,42 @@
 #Requires AutoHotkey v2.0
 #SingleInstance Force
-#Include "./lib/LibIndex.ahk"
-#Include "./src/App.ahk"
-CoordMode "Mouse", "Screen"
-TraySetIcon A_ScriptDir . "\src\Assets\FSRTray.ico"
+#Include lib/index.ahk
+#Include src/App.ahk
 
 ; Initializing configuration
 appName := "Fedex Scheduled Reservations"
-version := "4.0.0"
-popupTitle := appName . " " . version
-winGroup := ["ahk_class SunAwtFrame"]
-config := useConfigJSON(
+APP_DATA_DIR := A_AppData . "\FSR"
+CONFIG := useJsonConfig("./fsr.config.json", "fsr.config.json", APP_DATA_DIR)
+VERSION := CONFIG.read("version")
+POPUP_TITLE := appName . " " . version
+WIN_GROUP := ["ahk_class SunAwtFrame"]
+config := useJsonConfig(
 	"./fsr.config.json",
 	"fsr.config.json",
 )
 
-; Gui
-FSR := Gui(, popupTitle)
-FSR.SetFont(, "微软雅黑")
-FSR.OnEvent("Close", (*) => utils.quitApp(appName, popupTitle, winGroup))
+; initial config
+CoordMode "Mouse", "Screen"
+TraySetIcon A_ScriptDir "\Assets\FSRTray.ico"
+
+; SvanerApp
+FSR :=  Svaner({
+	gui: {
+		title: POPUP_TITLE
+	},
+	font: {
+		name: "微软雅黑"
+	},
+	events: {
+		close: (*) => utils.quitApp(appName, POPUP_TITLE, WIN_GROUP),
+	},
+	; devOpt: {
+	; 	border: true
+	; }
+})
 
 App(FSR)
-
 FSR.Show()
 
 ; hotkeys setup
-F12:: utils.cleanReload(winGroup)
+F12:: utils.cleanReload(WIN_GROUP)

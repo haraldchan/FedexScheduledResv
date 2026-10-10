@@ -68,7 +68,7 @@ DaySchedule(App, flights, selectDate, bringForwardTime) {
 
     render() {
         App.AddGroupBox("x270 @align[y]:guide h450 w670")
-        App.AddText("xp+10 yp-1 h25 w280", "  Scheduled Flights on {1},  Total Resv: {2}", [selectDate, flightCount]).setFont("Bold")
+        App.AddText("xp+10 yp-1 h25 w300", "  Scheduled Flights on {1},  Total Resv: {2}", [selectDate, flightCount]).setFont("Bold")
         App.AddListView(options, columnDetails, flights)
         App.AddCheckbox("vcheck-all Checked h25 y+10", "全选")
         App.AddButton("x+10 Default", "开始录入").onClick(handleEntry)

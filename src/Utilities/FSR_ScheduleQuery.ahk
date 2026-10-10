@@ -35,11 +35,11 @@ class FSR_ScheduleQuery {
 				}
 
 				ciDate := splittedLine[2]
-				fullDate := StrSplit(ciDate, "/")[1] < A_MM
-					? Format("{1}{2}", A_Year + 1, StrReplace(ciDate, "/", ""))
-					: Format("{1}{2}", A_Year, StrReplace(ciDate, "/", ""))
-
-				curDate := fullDate
+				curDate := schdPDF.split("\")
+				                  .at(-1)
+				                  .toLower()
+				                  .replaceThese([".pdf", "hotel-can-"], "")
+				                  .split("-")[1] . ciDate.replace("/", "")
 				daySchd := Map(curDate, [])
 				splittedLine.RemoveAt(2, 2)
 			}
@@ -48,7 +48,7 @@ class FSR_ScheduleQuery {
 				"tripNum", splittedLine[1],
 				"roomQty", splittedLine[2],
 				"inbound", splittedLine[4] . splittedLine[5],
-				"ibDate", FormatTime(curDate, "MM/dd"),
+				"ibDate", ciDate,
 				"ETA", splittedLine[6],
 				"stayHours", splittedLine[7],
 				"obDate", splittedLine[12],
